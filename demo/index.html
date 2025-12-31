@@ -357,6 +357,10 @@
           <input type="range" id="seed" min="0" max="1000" value="0">
         </div>
         <div class="control-group">
+          <label>Delete Corners <span id="deleteCornersValue">0</span></label>
+          <input type="range" id="deleteCorners" min="0" max="4" value="0">
+        </div>
+        <div class="control-group">
           <label>
             <input type="checkbox" id="shadowEnabled"> Enable Shadow
           </label>
@@ -500,6 +504,7 @@ result.<span class="keyword">restore</span>();
       edgeDeviation: document.getElementById('edgeDeviation'),
       distribution: document.getElementById('distribution'),
       seed: document.getElementById('seed'),
+      deleteCorners: document.getElementById('deleteCorners'),
       shadowEnabled: document.getElementById('shadowEnabled'),
       shadowX: document.getElementById('shadowX'),
       shadowY: document.getElementById('shadowY'),
@@ -513,6 +518,7 @@ result.<span class="keyword">restore</span>();
       edgePoints: document.getElementById('edgePointsValue'),
       edgeDeviation: document.getElementById('edgeDeviationValue'),
       seed: document.getElementById('seedValue'),
+      deleteCorners: document.getElementById('deleteCornersValue'),
       shadowX: document.getElementById('shadowXValue'),
       shadowY: document.getElementById('shadowYValue'),
       shadowBlur: document.getElementById('shadowBlurValue'),
@@ -531,6 +537,7 @@ result.<span class="keyword">restore</span>();
     // Get current options from controls
     function getOptions() {
       const seedVal = parseInt(controls.seed.value);
+      const deleteCornersVal = parseInt(controls.deleteCorners.value);
       const opts = {
         corners: {
           x: parseFloat(controls.cornerX.value),
@@ -541,6 +548,7 @@ result.<span class="keyword">restore</span>();
           deviation: parseFloat(controls.edgeDeviation.value),
           distribution: controls.distribution.value,
         },
+        deleteCorners: deleteCornersVal,
         seed: seedVal === 0 ? null : seedVal,
       };
 
@@ -572,6 +580,10 @@ result.<span class="keyword">restore</span>();
         code += `,\n  edges: { points: <span class="number">${opts.edges.points}</span>, deviation: <span class="number">${opts.edges.deviation}</span>, distribution: <span class="string">'${opts.edges.distribution}'</span> }`;
       }
 
+      if (opts.deleteCorners > 0) {
+        code += `,\n  deleteCorners: <span class="number">${opts.deleteCorners}</span>`;
+      }
+
       if (opts.shadow) {
         code += `,\n  shadow: { x: <span class="number">${opts.shadow.x}</span>, y: <span class="number">${opts.shadow.y}</span>, blur: <span class="number">${opts.shadow.blur}</span>, color: <span class="string">'${opts.shadow.color}'</span> }`;
       }
@@ -591,6 +603,7 @@ result.<span class="keyword">restore</span>();
       values.edgePoints.textContent = controls.edgePoints.value;
       values.edgeDeviation.textContent = parseFloat(controls.edgeDeviation.value).toFixed(1);
       values.seed.textContent = controls.seed.value;
+      values.deleteCorners.textContent = controls.deleteCorners.value;
       values.shadowX.textContent = controls.shadowX.value;
       values.shadowY.textContent = controls.shadowY.value;
       values.shadowBlur.textContent = controls.shadowBlur.value;
@@ -616,6 +629,7 @@ result.<span class="keyword">restore</span>();
       controls.edgeDeviation.value = Math.floor(Math.random() * 8) + 1;
       controls.distribution.value = ['random', 'even', 'weighted-center'][Math.floor(Math.random() * 3)];
       controls.seed.value = 0;
+      controls.deleteCorners.value = Math.floor(Math.random() * 3); // 0-2 corners
       updateValueDisplays();
       applyEffect();
     }
@@ -628,6 +642,7 @@ result.<span class="keyword">restore</span>();
       controls.edgeDeviation.value = 0.8;
       controls.distribution.value = 'random';
       controls.seed.value = 0;
+      controls.deleteCorners.value = 0;
       controls.shadowEnabled.checked = false;
       controls.shadowX.value = -10;
       controls.shadowY.value = 10;

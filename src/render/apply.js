@@ -210,6 +210,10 @@ function setElementOptions(elements, newOptions) {
           ...element._wabiOptions.edges,
           ...(newOptions.edges || {}),
         },
+        deleteCorners:
+          newOptions.deleteCorners !== undefined
+            ? newOptions.deleteCorners
+            : element._wabiOptions.deleteCorners,
       };
 
       // Handle shadow merging

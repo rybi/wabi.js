@@ -3,12 +3,35 @@ import { insertEdgePoints } from "./edges.js";
 import { getRNG } from "../utils/random.js";
 
 /**
+ * Select which corners to delete randomly
+ * @param {number} count - Number of corners to delete (0-4)
+ * @param {function} rng - Random number generator
+ * @returns {Set<number>} - Set of corner indices to delete
+ */
+function selectCornersToDelete(count, rng) {
+  if (count <= 0) return new Set();
+  if (count >= 4) return new Set([0, 1, 2, 3]);
+
+  const available = [0, 1, 2, 3];
+  const selected = new Set();
+
+  for (let i = 0; i < count; i++) {
+    const randomIndex = Math.floor(rng() * available.length);
+    selected.add(available[randomIndex]);
+    available.splice(randomIndex, 1);
+  }
+
+  return selected;
+}
+
+/**
  * Generate a complete irregular polygon for an element
  * @param {number} width - Element width (100 for percentage mode)
  * @param {number} height - Element height (100 for percentage mode)
  * @param {object} options - Generation options
  * @param {object} options.corners - Corner displacement options
  * @param {object} options.edges - Edge point options
+ * @param {number} options.deleteCorners - Number of corners to delete (0-4)
  * @param {number|null} options.seed - Random seed (null for Math.random)
  * @returns {Array<{x: number, y: number}>} - Array of polygon points
  */
@@ -16,6 +39,7 @@ export function generatePolygon(width, height, options) {
   const {
     corners: cornerOptions = { x: 0, y: 0 },
     edges: edgeOptions = { points: 0, deviation: 0 },
+    deleteCorners = 0,
     seed = null,
   } = options;
 
@@ -25,8 +49,22 @@ export function generatePolygon(width, height, options) {
   // Generate displaced corners
   const corners = generateCorners(width, height, cornerOptions, rng);
 
-  // Insert edge points
-  const polygon = insertEdgePoints(corners, edgeOptions, rng);
+  // FIRST: Insert edge points between all 4 corners
+  let polygon = insertEdgePoints(corners, edgeOptions, rng);
+
+  // THEN: Remove the deleted corner points (keeping edge points intact)
+  if (deleteCorners > 0) {
+    const cornersToDelete = selectCornersToDelete(deleteCorners, rng);
+    const pointsPerEdge = edgeOptions.points || 0;
+    const stride = pointsPerEdge + 1; // distance between corner indices in polygon
+
+    // Filter out corner points, keeping edge points
+    polygon = polygon.filter((_, index) => {
+      const cornerIndex = Math.floor(index / stride);
+      const isCornerPoint = index % stride === 0;
+      return !(isCornerPoint && cornersToDelete.has(cornerIndex));
+    });
+  }
 
   return polygon;
 }
@@ -45,6 +83,7 @@ export const defaultOptions = {
     deviation: 3,
     distribution: "random",
   },
+  deleteCorners: 0, // number of corners to delete (0-4)
   shadow: null, // disabled by default; set to object to enable
   seed: null,
   units: "%",
@@ -74,6 +113,10 @@ export function mergeOptions(userOptions) {
       ...defaultOptions.edges,
       ...(userOptions.edges || {}),
     },
+    deleteCorners:
+      userOptions.deleteCorners !== undefined
+        ? userOptions.deleteCorners
+        : defaultOptions.deleteCorners,
     shadow,
     seed: userOptions.seed !== undefined ? userOptions.seed : defaultOptions.seed,
     units: userOptions.units || defaultOptions.units,
