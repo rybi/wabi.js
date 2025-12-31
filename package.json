@@ -1,0 +1,37 @@
+{
+  "name": "wabi",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "A lightweight JavaScript library for adding organic geometric imperfection to HTML elements",
+  "main": "dist/wabi.cjs.js",
+  "module": "dist/wabi.esm.js",
+  "browser": "dist/wabi.min.js",
+  "unpkg": "dist/wabi.min.js",
+  "types": "dist/wabi.d.ts",
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "demo": "npx serve ."
+  },
+  "keywords": [
+    "wabi-sabi",
+    "imperfection",
+    "organic",
+    "clip-path",
+    "polygon",
+    "design",
+    "ui",
+    "visual"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "rollup": "^4.9.0",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-node-resolve": "^15.2.3"
+  }
+}
