@@ -130,6 +130,19 @@
       transform: scale(1.1);
     }
 
+    .control-group.disabled label {
+      opacity: 0.4;
+    }
+
+    .control-group.disabled input[type="range"] {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .control-group.disabled input[type="range"]::-webkit-slider-thumb {
+      cursor: not-allowed;
+    }
+
     select {
       padding: 0.5rem;
       border: 1px solid var(--border);
@@ -329,19 +342,19 @@
       <h2>Settings</h2>
       <div class="control-grid">
         <div class="control-group">
-          <label>Corner Variance X <span id="cornerXValue">2.0</span></label>
+          <label>Corner Wobble X <span id="cornerXValue">2.0</span></label>
           <input type="range" id="cornerX" min="0" max="20" step="0.1" value="2">
         </div>
         <div class="control-group">
-          <label>Corner Variance Y <span id="cornerYValue">2.0</span></label>
+          <label>Corner Wobble Y <span id="cornerYValue">2.0</span></label>
           <input type="range" id="cornerY" min="0" max="20" step="0.1" value="2">
         </div>
         <div class="control-group">
-          <label>Edge Points <span id="edgePointsValue">2</span></label>
+          <label>Points Per Edge <span id="edgePointsValue">2</span></label>
           <input type="range" id="edgePoints" min="0" max="15" value="2">
         </div>
         <div class="control-group">
-          <label>Edge Deviation <span id="edgeDeviationValue">0.8</span></label>
+          <label>Edge Wobble <span id="edgeDeviationValue">0.8</span></label>
           <input type="range" id="edgeDeviation" min="0" max="10" step="0.1" value="0.8">
         </div>
         <div class="control-group">
@@ -357,8 +370,12 @@
           <input type="range" id="seed" min="0" max="1000" value="0">
         </div>
         <div class="control-group">
-          <label>Delete Corners <span id="deleteCornersValue">0</span></label>
-          <input type="range" id="deleteCorners" min="0" max="4" value="0">
+          <label>Cut Corners <span id="cutCornersValue">0</span></label>
+          <input type="range" id="cutCorners" min="0" max="4" value="0">
+        </div>
+        <div class="control-group cut-corner-inset-control">
+          <label>Cut Corner Inset <span id="cutCornerInsetValue">1.0</span></label>
+          <input type="range" id="cornerInset" min="0" max="1" step="0.1" value="1">
         </div>
         <div class="control-group">
           <label>
@@ -463,6 +480,17 @@
         <h4 style="margin-top: 1.5rem;">3. That's it!</h4>
         <p>The library works by applying a CSS <code>clip-path</code> polygon to your elements. No dependencies, no build step required.</p>
 
+        <h4 style="margin-top: 1.5rem;">Settings reference</h4>
+        <ul style="margin: 0.5rem 0; padding-left: 1.5rem; color: #666; font-size: 0.9rem;">
+          <li><code>corners.x</code> / <code>corners.y</code> — Maximum random displacement of corners in each direction (as % of element size).</li>
+          <li><code>edges.points</code> — Number of additional points to add along each edge between corners.</li>
+          <li><code>edges.deviation</code> — How far edge points can deviate perpendicular to the edge line.</li>
+          <li><code>edges.distribution</code> — How edge points are spaced: <code>'random'</code>, <code>'even'</code>, or <code>'weighted-center'</code>.</li>
+          <li><code>seed</code> — Fixed seed for reproducible randomness; use <code>null</code> for different results each time.</li>
+          <li><code>cutCorners</code> — Number of corners (0-4) to randomly cut off, creating angled shapes.</li>
+          <li><code>cornerInset</code> — How far cut corners move inward (0 = no change, 1 = full cut).</li>
+        </ul>
+
         <h4 style="margin-top: 1.5rem;">Using with ES modules</h4>
         <p>If you're using a bundler or ES modules:</p>
         <div class="code-display">
@@ -504,7 +532,8 @@ result.<span class="keyword">restore</span>();
       edgeDeviation: document.getElementById('edgeDeviation'),
       distribution: document.getElementById('distribution'),
       seed: document.getElementById('seed'),
-      deleteCorners: document.getElementById('deleteCorners'),
+      cutCorners: document.getElementById('cutCorners'),
+      cutCornerInset: document.getElementById('cornerInset'),
       shadowEnabled: document.getElementById('shadowEnabled'),
       shadowX: document.getElementById('shadowX'),
       shadowY: document.getElementById('shadowY'),
@@ -518,7 +547,8 @@ result.<span class="keyword">restore</span>();
       edgePoints: document.getElementById('edgePointsValue'),
       edgeDeviation: document.getElementById('edgeDeviationValue'),
       seed: document.getElementById('seedValue'),
-      deleteCorners: document.getElementById('deleteCornersValue'),
+      cutCorners: document.getElementById('cutCornersValue'),
+      cutCornerInset: document.getElementById('cutCornerInsetValue'),
       shadowX: document.getElementById('shadowXValue'),
       shadowY: document.getElementById('shadowYValue'),
       shadowBlur: document.getElementById('shadowBlurValue'),
@@ -534,10 +564,21 @@ result.<span class="keyword">restore</span>();
     }
     controls.shadowEnabled.addEventListener('change', updateShadowControlsVisibility);
 
+    // Cut corner inset control disabled state (disable when cutCorners = 0)
+    const cutCornerInsetControl = document.querySelector('.cut-corner-inset-control');
+    function updateCutCornerInsetState() {
+      const disabled = parseInt(controls.cutCorners.value) === 0;
+      cutCornerInsetControl.classList.toggle('disabled', disabled);
+      controls.cutCornerInset.disabled = disabled;
+    }
+    controls.cutCorners.addEventListener('input', updateCutCornerInsetState);
+    updateCutCornerInsetState();
+
     // Get current options from controls
     function getOptions() {
       const seedVal = parseInt(controls.seed.value);
-      const deleteCornersVal = parseInt(controls.deleteCorners.value);
+      const cutCornersVal = parseInt(controls.cutCorners.value);
+      const cutCornerInsetVal = parseFloat(controls.cutCornerInset.value);
       const opts = {
         corners: {
           x: parseFloat(controls.cornerX.value),
@@ -548,7 +589,8 @@ result.<span class="keyword">restore</span>();
           deviation: parseFloat(controls.edgeDeviation.value),
           distribution: controls.distribution.value,
         },
-        deleteCorners: deleteCornersVal,
+        cutCorners: cutCornersVal,
+        cornerInset: cutCornerInsetVal,
         seed: seedVal === 0 ? null : seedVal,
       };
 
@@ -580,8 +622,11 @@ result.<span class="keyword">restore</span>();
         code += `,\n  edges: { points: <span class="number">${opts.edges.points}</span>, deviation: <span class="number">${opts.edges.deviation}</span>, distribution: <span class="string">'${opts.edges.distribution}'</span> }`;
       }
 
-      if (opts.deleteCorners > 0) {
-        code += `,\n  deleteCorners: <span class="number">${opts.deleteCorners}</span>`;
+      if (opts.cutCorners > 0) {
+        code += `,\n  cutCorners: <span class="number">${opts.cutCorners}</span>`;
+        if (opts.cornerInset < 1) {
+          code += `,\n  cornerInset: <span class="number">${opts.cornerInset}</span>`;
+        }
       }
 
       if (opts.shadow) {
@@ -603,7 +648,8 @@ result.<span class="keyword">restore</span>();
       values.edgePoints.textContent = controls.edgePoints.value;
       values.edgeDeviation.textContent = parseFloat(controls.edgeDeviation.value).toFixed(1);
       values.seed.textContent = controls.seed.value;
-      values.deleteCorners.textContent = controls.deleteCorners.value;
+      values.cutCorners.textContent = controls.cutCorners.value;
+      values.cutCornerInset.textContent = parseFloat(controls.cutCornerInset.value).toFixed(1);
       values.shadowX.textContent = controls.shadowX.value;
       values.shadowY.textContent = controls.shadowY.value;
       values.shadowBlur.textContent = controls.shadowBlur.value;
@@ -629,7 +675,9 @@ result.<span class="keyword">restore</span>();
       controls.edgeDeviation.value = Math.floor(Math.random() * 8) + 1;
       controls.distribution.value = ['random', 'even', 'weighted-center'][Math.floor(Math.random() * 3)];
       controls.seed.value = 0;
-      controls.deleteCorners.value = Math.floor(Math.random() * 3); // 0-2 corners
+      controls.cutCorners.value = Math.floor(Math.random() * 3); // 0-2 corners
+      controls.cutCornerInset.value = (Math.random() * 0.8 + 0.2).toFixed(1); // 0.2-1.0
+      updateCutCornerInsetState();
       updateValueDisplays();
       applyEffect();
     }
@@ -642,13 +690,15 @@ result.<span class="keyword">restore</span>();
       controls.edgeDeviation.value = 0.8;
       controls.distribution.value = 'random';
       controls.seed.value = 0;
-      controls.deleteCorners.value = 0;
+      controls.cutCorners.value = 0;
+      controls.cutCornerInset.value = 1;
       controls.shadowEnabled.checked = false;
       controls.shadowX.value = -10;
       controls.shadowY.value = 10;
       controls.shadowBlur.value = 8;
       controls.shadowColor.value = '#000000';
       updateShadowControlsVisibility();
+      updateCutCornerInsetState();
       updateValueDisplays();
       applyEffect();
     }

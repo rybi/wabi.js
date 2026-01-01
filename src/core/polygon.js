@@ -3,12 +3,12 @@ import { insertEdgePoints } from "./edges.js";
 import { getRNG } from "../utils/random.js";
 
 /**
- * Select which corners to delete randomly
- * @param {number} count - Number of corners to delete (0-4)
+ * Select which corners to cut randomly
+ * @param {number} count - Number of corners to cut (0-4)
  * @param {function} rng - Random number generator
- * @returns {Set<number>} - Set of corner indices to delete
+ * @returns {Set<number>} - Set of corner indices to cut
  */
-function selectCornersToDelete(count, rng) {
+function selectCornersToCut(count, rng) {
   if (count <= 0) return new Set();
   if (count >= 4) return new Set([0, 1, 2, 3]);
 
@@ -31,7 +31,7 @@ function selectCornersToDelete(count, rng) {
  * @param {object} options - Generation options
  * @param {object} options.corners - Corner displacement options
  * @param {object} options.edges - Edge point options
- * @param {number} options.deleteCorners - Number of corners to delete (0-4)
+ * @param {number} options.cutCorners - Number of corners to cut (0-4)
  * @param {number|null} options.seed - Random seed (null for Math.random)
  * @returns {Array<{x: number, y: number}>} - Array of polygon points
  */
@@ -39,7 +39,8 @@ export function generatePolygon(width, height, options) {
   const {
     corners: cornerOptions = { x: 0, y: 0 },
     edges: edgeOptions = { points: 0, deviation: 0 },
-    deleteCorners = 0,
+    cutCorners = 0,
+    cornerInset = 1,
     seed = null,
   } = options;
 
@@ -52,18 +53,49 @@ export function generatePolygon(width, height, options) {
   // FIRST: Insert edge points between all 4 corners
   let polygon = insertEdgePoints(corners, edgeOptions, rng);
 
-  // THEN: Remove the deleted corner points (keeping edge points intact)
-  if (deleteCorners > 0) {
-    const cornersToDelete = selectCornersToDelete(deleteCorners, rng);
+  // THEN: Handle cut corners based on inset value
+  if (cutCorners > 0) {
+    const cornersToCut = selectCornersToCut(cutCorners, rng);
     const pointsPerEdge = edgeOptions.points || 0;
     const stride = pointsPerEdge + 1; // distance between corner indices in polygon
+    const inset = cornerInset ?? 1;
 
-    // Filter out corner points, keeping edge points
-    polygon = polygon.filter((_, index) => {
-      const cornerIndex = Math.floor(index / stride);
-      const isCornerPoint = index % stride === 0;
-      return !(isCornerPoint && cornersToDelete.has(cornerIndex));
-    });
+    if (inset >= 1) {
+      // Full cut - remove corner points entirely
+      polygon = polygon.filter((_, index) => {
+        const cornerIndex = Math.floor(index / stride);
+        const isCornerPoint = index % stride === 0;
+        return !(isCornerPoint && cornersToCut.has(cornerIndex));
+      });
+    } else if (inset > 0) {
+      // Partial inset - move corners toward cut line
+      polygon = polygon.map((point, index) => {
+        const cornerIndex = Math.floor(index / stride);
+        const isCornerPoint = index % stride === 0;
+
+        if (isCornerPoint && cornersToCut.has(cornerIndex)) {
+          // Find adjacent points (previous and next in polygon)
+          const prevIndex = (index - 1 + polygon.length) % polygon.length;
+          const nextIndex = (index + 1) % polygon.length;
+          const prevPoint = polygon[prevIndex];
+          const nextPoint = polygon[nextIndex];
+
+          // Calculate midpoint of deletion line
+          const midpoint = {
+            x: (prevPoint.x + nextPoint.x) / 2,
+            y: (prevPoint.y + nextPoint.y) / 2,
+          };
+
+          // Move corner toward midpoint by inset amount
+          return {
+            x: point.x + (midpoint.x - point.x) * inset,
+            y: point.y + (midpoint.y - point.y) * inset,
+          };
+        }
+        return point;
+      });
+    }
+    // inset === 0: no change to polygon
   }
 
   return polygon;
@@ -83,7 +115,8 @@ export const defaultOptions = {
     deviation: 3,
     distribution: "random",
   },
-  deleteCorners: 0, // number of corners to delete (0-4)
+  cutCorners: 0, // number of corners to cut (0-4)
+  cornerInset: 1, // 0-1, how far cut corners move inward (1 = full cut)
   shadow: null, // disabled by default; set to object to enable
   seed: null,
   units: "%",
@@ -113,10 +146,14 @@ export function mergeOptions(userOptions) {
       ...defaultOptions.edges,
       ...(userOptions.edges || {}),
     },
-    deleteCorners:
-      userOptions.deleteCorners !== undefined
-        ? userOptions.deleteCorners
-        : defaultOptions.deleteCorners,
+    cutCorners:
+      userOptions.cutCorners !== undefined
+        ? userOptions.cutCorners
+        : defaultOptions.cutCorners,
+    cornerInset:
+      userOptions.cornerInset !== undefined
+        ? userOptions.cornerInset
+        : defaultOptions.cornerInset,
     shadow,
     seed: userOptions.seed !== undefined ? userOptions.seed : defaultOptions.seed,
     units: userOptions.units || defaultOptions.units,
