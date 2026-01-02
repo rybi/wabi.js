@@ -14,7 +14,7 @@
  * // With edge points
  * wabi('.cards', {
  *   corners: { x: 3, y: 3 },
- *   edges: { points: 2, deviation: 2 }
+ *   edges: { points: 2, edgeWobble: 2 }
  * });
  */
 

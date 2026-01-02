@@ -12,6 +12,27 @@ function debounce(fn, delay) {
   };
 }
 
+// Singleton ResizeObserver
+let sharedResizeObserver = null;
+const resizeCallbacks = new WeakMap(); // Map<Element, Callback>
+
+// Singleton window resize handler (fallback)
+let sharedWindowHandler = null;
+const windowResizeCallbacks = new Set(); // Set<Callback>
+
+function handleResizeEntries(entries) {
+  for (const entry of entries) {
+    const callback = resizeCallbacks.get(entry.target);
+    if (callback) {
+      callback(entry);
+    }
+  }
+}
+
+function handleWindowResize() {
+  windowResizeCallbacks.forEach((callback) => callback());
+}
+
 /**
  * Set up a resize observer for an element
  * @param {Element} element - Element to observe
@@ -21,20 +42,36 @@ function debounce(fn, delay) {
 export function setupResizeObserver(element, callback) {
   // Modern approach: ResizeObserver
   if (typeof ResizeObserver !== "undefined") {
+    if (!sharedResizeObserver) {
+      sharedResizeObserver = new ResizeObserver(debounce(handleResizeEntries, 20));
+    }
+
+    // Debounce the individual callback too to prevent thrashing
     const debouncedCallback = debounce(callback, 100);
-    const observer = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        if (entry.target === element) {
-          debouncedCallback();
-        }
-      }
-    });
-    observer.observe(element);
-    return () => observer.disconnect();
+    resizeCallbacks.set(element, debouncedCallback);
+    sharedResizeObserver.observe(element);
+
+    return () => {
+      sharedResizeObserver.unobserve(element);
+      resizeCallbacks.delete(element);
+    };
   }
 
   // Fallback: window resize event
-  const handler = debounce(() => callback(), 100);
-  window.addEventListener("resize", handler);
-  return () => window.removeEventListener("resize", handler);
+  if (!sharedWindowHandler) {
+    sharedWindowHandler = debounce(handleWindowResize, 100);
+    window.addEventListener("resize", sharedWindowHandler);
+  }
+
+  const debouncedCallback = debounce(callback, 100);
+  windowResizeCallbacks.add(debouncedCallback);
+
+  return () => {
+    windowResizeCallbacks.delete(debouncedCallback);
+    // Optional: remove window listener if set is empty, but maybe not strictly necessary for this scope
+    if (windowResizeCallbacks.size === 0 && sharedWindowHandler) {
+      window.removeEventListener("resize", sharedWindowHandler);
+      sharedWindowHandler = null;
+    }
+  };
 }

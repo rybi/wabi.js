@@ -66,7 +66,19 @@ wabi('#card', {
     color: 'rgba(0,0,0,0.15)'  // shadow color
   }
 });
+```javascript
+wabi('#card', {
+  corners: { x: 5, y: 4 },
+  shadow: {
+    x: 0,                      // horizontal offset (default: 0)
+    y: 4,                      // vertical offset (default: 4)
+    blur: 8,                   // blur radius (default: 8)
+    color: 'rgba(0,0,0,0.15)'  // shadow color
+  }
+});
 ```
+
+> **Warning:** Enabling shadows wraps the target element in a DOM container to apply the shadow without clipping it. While wabi.js automatically copies layout styles (flex, grid, position, etc.) to this wrapper, this might still affect complex layouts or CSS selectors that depend on parent-child relationships. Test thoroughly when using shadows.
 
 ## API
 
@@ -94,7 +106,8 @@ wabi('#card', {
   shadow: null,        // Shadow options (see below), null = disabled
   seed: null,          // Random seed for reproducibility
   units: '%',          // 'px' or '%'
-  preserveOnResize: true
+  preserveOnResize: true,
+  wrapperClass: ''     // Custom class to add to shadow wrapper
 }
 ```
 
@@ -139,6 +152,7 @@ Works in all modern browsers that support `clip-path: polygon()`:
 - `clip-path` clips visually but doesn't affect layout
 - Borders are clipped (use the built-in `shadow` option for shadows)
 - Overrides `border-radius`
+- **Shadows**: Change DOM structure by wrapping element (see warning above)
 
 ## License
 

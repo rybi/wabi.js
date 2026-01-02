@@ -6,15 +6,15 @@ import { randomInRange } from "../utils/random.js";
  * @param {object} end - End point {x, y}
  * @param {object} edgeOptions - Edge options
  * @param {number} edgeOptions.points - Number of points to insert
- * @param {number} edgeOptions.deviation - Max perpendicular deviation
+ * @param {number} edgeOptions.edgeWobble - Max perpendicular deviation
  * @param {string} edgeOptions.distribution - 'random' | 'even' | 'weighted-center'
  * @param {function} rng - Random number generator
  * @returns {Array<{x: number, y: number}>} - Array of edge points (not including start/end)
  */
 export function generateEdgePoints(start, end, edgeOptions, rng) {
-  const { points = 0, deviation = 0, distribution = "random" } = edgeOptions;
+  const { points = 0, edgeWobble = 0, distribution = "random" } = edgeOptions;
 
-  if (points <= 0 || deviation === 0) {
+  if (points <= 0 || edgeWobble === 0) {
     return [];
   }
 
@@ -47,7 +47,7 @@ export function generateEdgePoints(start, end, edgeOptions, rng) {
     };
 
     // Random perpendicular offset
-    const offset = randomInRange(rng, -deviation, deviation);
+    const offset = randomInRange(rng, -edgeWobble, edgeWobble);
 
     return {
       x: pointOnLine.x + offset * perpendicular.x,

@@ -328,14 +328,9 @@
     <header>
       <h1>wabi<span>.js</span></h1>
       <p class="tagline">Subtle geometric imperfection for HTML elements</p>
-      <p class="japanese">侘寂 — finding beauty in imperfection</p>
+      <p class="japanese">wabi.js adds small, organic imperfection to your HTML elements using CSS clip-path polygons.</br>
+      Adjust the settings below to see the effect in action.</p>
     </header>
-
-    <!-- Intro -->
-    <p class="intro">
-      wabi.js adds small, organic imperfection to your HTML elements using CSS clip-path polygons.
-      Adjust the settings below to see the effect in action.
-    </p>
 
     <!-- Controls -->
     <div class="controls">
@@ -343,19 +338,19 @@
       <div class="control-grid">
         <div class="control-group">
           <label>Corner Wobble X <span id="cornerXValue">2.0</span></label>
-          <input type="range" id="cornerX" min="0" max="20" step="0.1" value="2">
+          <input type="range" id="cornerX" min="0" max="9" step="0.1" value="2">
         </div>
         <div class="control-group">
           <label>Corner Wobble Y <span id="cornerYValue">2.0</span></label>
-          <input type="range" id="cornerY" min="0" max="20" step="0.1" value="2">
+          <input type="range" id="cornerY" min="0" max="9" step="0.1" value="2">
         </div>
         <div class="control-group">
           <label>Points Per Edge <span id="edgePointsValue">2</span></label>
-          <input type="range" id="edgePoints" min="0" max="15" value="2">
+          <input type="range" id="edgePoints" min="0" max="20" value="2">
         </div>
         <div class="control-group">
-          <label>Edge Wobble <span id="edgeDeviationValue">0.8</span></label>
-          <input type="range" id="edgeDeviation" min="0" max="10" step="0.1" value="0.8">
+          <label>Edge Wobble <span id="edgeWobbleValue">0.8</span></label>
+          <input type="range" id="edgeWobble" min="0" max="10" step="0.1" value="0.8">
         </div>
         <div class="control-group">
           <label>Distribution</label>
@@ -459,6 +454,31 @@
       </div>
     </section>
 
+    <!-- Demo: Layout Tests (Flex/Grid/Inline) -->
+    <section class="demo-section">
+      <h3>Layout Tests (Flex/Grid/Inline)</h3>
+      
+      <h4>Flexbox Row (Space Between)</h4>
+      <div style="display: flex; justify-content: space-between; background: #ddd; padding: 1rem; margin-bottom: 1rem;">
+        <div class="box red demo">L</div>
+        <div class="box green demo">M</div>
+        <div class="box blue demo">R</div>
+      </div>
+
+      <h4>CSS Grid (2 Columns, Gap)</h4>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; background: #ddd; padding: 1rem; margin-bottom: 1rem;">
+        <div class="card demo" style="margin: 0;">Grid Item 1</div>
+        <div class="card demo" style="margin: 0;">Grid Item 2</div>
+        <div class="card demo" style="margin: 0;">Grid Item 3</div>
+        <div class="card demo" style="margin: 0;">Grid Item 4</div>
+      </div>
+
+      <h4>Inline Text</h4>
+      <p style="background: #fff; padding: 1rem;">
+        This is a paragraph with <span class="demo" style="background: #ffeb3b; padding: 2px 5px;">inline highlighted text</span> that should stay inline even with <span class="demo" style="background: #80deea; padding: 2px 5px;">shadow enabled</span>.
+      </p>
+    </section>
+
     <!-- Integration Guide -->
     <section class="demo-section">
       <h3>How to Use</h3>
@@ -484,7 +504,7 @@
         <ul style="margin: 0.5rem 0; padding-left: 1.5rem; color: #666; font-size: 0.9rem;">
           <li><code>corners.x</code> / <code>corners.y</code> — Maximum random displacement of corners in each direction (as % of element size).</li>
           <li><code>edges.points</code> — Number of additional points to add along each edge between corners.</li>
-          <li><code>edges.deviation</code> — How far edge points can deviate perpendicular to the edge line.</li>
+          <li><code>edges.edgeWobble</code> — How far edge points can deviate perpendicular to the edge line.</li>
           <li><code>edges.distribution</code> — How edge points are spaced: <code>'random'</code>, <code>'even'</code>, or <code>'weighted-center'</code>.</li>
           <li><code>seed</code> — Fixed seed for reproducible randomness; use <code>null</code> for different results each time.</li>
           <li><code>cutCorners</code> — Number of corners (0-4) to randomly cut off, creating angled shapes.</li>
@@ -529,7 +549,7 @@ result.<span class="keyword">restore</span>();
       cornerX: document.getElementById('cornerX'),
       cornerY: document.getElementById('cornerY'),
       edgePoints: document.getElementById('edgePoints'),
-      edgeDeviation: document.getElementById('edgeDeviation'),
+      edgeWobble: document.getElementById('edgeWobble'),
       distribution: document.getElementById('distribution'),
       seed: document.getElementById('seed'),
       cutCorners: document.getElementById('cutCorners'),
@@ -545,7 +565,7 @@ result.<span class="keyword">restore</span>();
       cornerX: document.getElementById('cornerXValue'),
       cornerY: document.getElementById('cornerYValue'),
       edgePoints: document.getElementById('edgePointsValue'),
-      edgeDeviation: document.getElementById('edgeDeviationValue'),
+      edgeWobble: document.getElementById('edgeWobbleValue'),
       seed: document.getElementById('seedValue'),
       cutCorners: document.getElementById('cutCornersValue'),
       cutCornerInset: document.getElementById('cutCornerInsetValue'),
@@ -586,7 +606,7 @@ result.<span class="keyword">restore</span>();
         },
         edges: {
           points: parseInt(controls.edgePoints.value),
-          deviation: parseFloat(controls.edgeDeviation.value),
+          edgeWobble: parseFloat(controls.edgeWobble.value),
           distribution: controls.distribution.value,
         },
         cutCorners: cutCornersVal,
@@ -619,7 +639,7 @@ result.<span class="keyword">restore</span>();
       code += `  corners: { x: <span class="number">${opts.corners.x}</span>, y: <span class="number">${opts.corners.y}</span> }`;
 
       if (opts.edges.points > 0) {
-        code += `,\n  edges: { points: <span class="number">${opts.edges.points}</span>, deviation: <span class="number">${opts.edges.deviation}</span>, distribution: <span class="string">'${opts.edges.distribution}'</span> }`;
+        code += `,\n  edges: { points: <span class="number">${opts.edges.points}</span>, edgeWobble: <span class="number">${opts.edges.edgeWobble}</span>, distribution: <span class="string">'${opts.edges.distribution}'</span> }`;
       }
 
       if (opts.cutCorners > 0) {
@@ -646,7 +666,7 @@ result.<span class="keyword">restore</span>();
       values.cornerX.textContent = parseFloat(controls.cornerX.value).toFixed(1);
       values.cornerY.textContent = parseFloat(controls.cornerY.value).toFixed(1);
       values.edgePoints.textContent = controls.edgePoints.value;
-      values.edgeDeviation.textContent = parseFloat(controls.edgeDeviation.value).toFixed(1);
+      values.edgeWobble.textContent = parseFloat(controls.edgeWobble.value).toFixed(1);
       values.seed.textContent = controls.seed.value;
       values.cutCorners.textContent = controls.cutCorners.value;
       values.cutCornerInset.textContent = parseFloat(controls.cutCornerInset.value).toFixed(1);
@@ -671,8 +691,8 @@ result.<span class="keyword">restore</span>();
     function randomize() {
       controls.cornerX.value = Math.floor(Math.random() * 15) + 1;
       controls.cornerY.value = Math.floor(Math.random() * 15) + 1;
-      controls.edgePoints.value = Math.floor(Math.random() * 4);
-      controls.edgeDeviation.value = Math.floor(Math.random() * 8) + 1;
+      controls.edgePoints.value = Math.floor(Math.random() * 19) + 2;
+      controls.edgeWobble.value = Math.floor(Math.random() * 8) + 1;
       controls.distribution.value = ['random', 'even', 'weighted-center'][Math.floor(Math.random() * 3)];
       controls.seed.value = 0;
       controls.cutCorners.value = Math.floor(Math.random() * 3); // 0-2 corners
@@ -687,7 +707,7 @@ result.<span class="keyword">restore</span>();
       controls.cornerX.value = 2;
       controls.cornerY.value = 2;
       controls.edgePoints.value = 2;
-      controls.edgeDeviation.value = 0.8;
+      controls.edgeWobble.value = 0.8;
       controls.distribution.value = 'random';
       controls.seed.value = 0;
       controls.cutCorners.value = 0;

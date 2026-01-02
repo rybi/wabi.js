@@ -38,7 +38,7 @@ function selectCornersToCut(count, rng) {
 export function generatePolygon(width, height, options) {
   const {
     corners: cornerOptions = { x: 0, y: 0 },
-    edges: edgeOptions = { points: 0, deviation: 0 },
+    edges: edgeOptions = { points: 0, edgeWobble: 0 },
     cutCorners = 0,
     cornerInset = 1,
     seed = null,
@@ -112,7 +112,7 @@ export const defaultOptions = {
   },
   edges: {
     points: 0,
-    deviation: 3,
+    edgeWobble: 3,
     distribution: "random",
   },
   cutCorners: 0, // number of corners to cut (0-4)

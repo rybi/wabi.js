@@ -16,6 +16,10 @@ const resizeCleanups = new WeakMap();
 // Store shadow wrapper elements
 const shadowWrappers = new WeakMap();
 
+// Symbol-based properties to avoid collision with other libraries
+const WABI_REGENERATE = Symbol("wabi.regenerate");
+const WABI_OPTIONS = Symbol("wabi.options");
+
 /**
  * Wrap element with a container for shadow effect
  * Shadow must be on wrapper so it doesn't get clipped by clip-path
@@ -23,25 +27,57 @@ const shadowWrappers = new WeakMap();
  * @param {string} dropShadow - CSS drop-shadow filter value
  * @returns {Element} - The wrapper element
  */
-function wrapElementForShadow(element, dropShadow) {
+
+function wrapElementForShadow(element, dropShadow, options) {
   // Check if already wrapped
   let wrapper = shadowWrappers.get(element);
-  if (wrapper) {
-    wrapper.style.filter = dropShadow;
-    return wrapper;
+
+  // Create wrapper if doesn't exist
+  if (!wrapper) {
+    wrapper = document.createElement("div");
+    wrapper.className = "wabi-shadow-wrapper";
+    if (options.wrapperClass) {
+      wrapper.classList.add(options.wrapperClass);
+    }
+
+    // Insert wrapper and move element into it
+    element.parentNode.insertBefore(wrapper, element);
+    wrapper.appendChild(element);
+    shadowWrappers.set(element, wrapper);
   }
 
-  // Create wrapper - must render as a box for filter to work
-  // (display: contents would remove the box and filter wouldn't apply)
-  wrapper = document.createElement("div");
-  wrapper.className = "wabi-shadow-wrapper";
+  // Apply shadow to wrapper
   wrapper.style.filter = dropShadow;
 
-  // Insert wrapper and move element into it
-  element.parentNode.insertBefore(wrapper, element);
-  wrapper.appendChild(element);
+  // Copy layout styles from element to wrapper
+  const computed = window.getComputedStyle(element);
+  const layoutProps = [
+    "display", "position", "top", "right", "bottom", "left", "float", "clear", "zIndex",
+    "flex", "flexGrow", "flexShrink", "flexBasis", "alignSelf", "justifySelf",
+    "gridArea", "gridColumn", "gridRow", "gridColumnStart", "gridColumnEnd", "gridRowStart", "gridRowEnd",
+    "order",
+    "marginTop", "marginRight", "marginBottom", "marginLeft" // individual margins to be safe
+  ];
 
-  shadowWrappers.set(element, wrapper);
+  layoutProps.forEach(prop => {
+    wrapper.style[prop] = computed[prop];
+  });
+
+  // Reset context on element so it behaves correctly inside wrapper
+  element.style.margin = "0";
+  // We keep width/height on the element, wrapper should fit content or copy?
+  // If we copy display, wrapper behaves like element.
+
+  // Special handling for position
+  if (computed.position === "absolute" || computed.position === "fixed") {
+    element.style.position = "static";
+    // We already moved top/left/etc to wrapper
+    element.style.top = "auto";
+    element.style.right = "auto";
+    element.style.bottom = "auto";
+    element.style.left = "auto";
+  }
+
   return wrapper;
 }
 
@@ -49,12 +85,23 @@ function wrapElementForShadow(element, dropShadow) {
  * Unwrap element from shadow wrapper
  * @param {Element} element - Element to unwrap
  */
+
 function unwrapElement(element) {
   const wrapper = shadowWrappers.get(element);
   if (!wrapper) return;
 
+  // Reset element styles that were modified
+  element.style.margin = "";
+  element.style.position = "";
+  element.style.top = "";
+  element.style.right = "";
+  element.style.bottom = "";
+  element.style.left = "";
+
   // Move element back to original position (before wrapper)
-  wrapper.parentNode.insertBefore(element, wrapper);
+  if (wrapper.parentNode) {
+    wrapper.parentNode.insertBefore(element, wrapper);
+  }
   // Remove the empty wrapper
   wrapper.remove();
   shadowWrappers.delete(element);
@@ -100,7 +147,12 @@ export function apply(selector, optionsOrCornerX, cornerY, edgePoints) {
 function applyToElement(element, options) {
   // Store original clip-path if not already stored
   if (!originalClipPaths.has(element)) {
-    originalClipPaths.set(element, element.style.clipPath || "");
+    const existingClipPath = element.style.clipPath;
+    // Warn if overwriting an existing clip-path
+    if (existingClipPath && existingClipPath !== "none" && existingClipPath !== "") {
+      console.warn("wabi.js: Existing clip-path will be overwritten. Call restore() to recover.", element);
+    }
+    originalClipPaths.set(element, existingClipPath || "");
   }
 
   // Store original filter if not already stored
@@ -121,7 +173,14 @@ function applyToElement(element, options) {
 
     const polygon = generatePolygon(width, height, options);
     const clipPath = generateClipPath(polygon, options.units);
+
+    // Temporarily disable transitions to prevent animation of clip-path change
+    const originalTransition = element.style.transition;
+    element.style.transition = "none";
     element.style.clipPath = clipPath;
+    // Force reflow to apply the change before re-enabling transitions
+    element.offsetHeight; // eslint-disable-line no-unused-expressions
+    element.style.transition = originalTransition;
   };
 
   regenerate();
@@ -129,21 +188,39 @@ function applyToElement(element, options) {
   // Apply shadow via wrapper (so it doesn't get clipped by clip-path)
   const dropShadow = generateDropShadow(options.shadow);
   if (dropShadow) {
-    wrapElementForShadow(element, dropShadow);
+    wrapElementForShadow(element, dropShadow, options);
   } else {
     // Shadow disabled - unwrap if previously wrapped
     unwrapElement(element);
   }
 
   // Set up resize observer if needed
-  if (options.preserveOnResize && options.units === "px") {
-    const cleanup = setupResizeObserver(element, regenerate);
-    resizeCleanups.set(element, cleanup);
+  if (options.preserveOnResize) {
+    if (options.units === "px") {
+      // Standard resize regeneration for pixel mode
+      const cleanup = setupResizeObserver(element, regenerate);
+      resizeCleanups.set(element, cleanup);
+    } else if (options.units === "%") {
+      // Aspect ratio change detection for percentage mode
+      let lastAspectRatio = element.offsetWidth / element.offsetHeight;
+
+      const checkAspectRatio = () => {
+        const currentAspectRatio = element.offsetWidth / element.offsetHeight;
+        // Only regenerate if aspect ratio changed significantly (>1% change)
+        if (Math.abs(currentAspectRatio - lastAspectRatio) / lastAspectRatio > 0.01) {
+          lastAspectRatio = currentAspectRatio;
+          regenerate();
+        }
+      };
+
+      const cleanup = setupResizeObserver(element, checkAspectRatio);
+      resizeCleanups.set(element, cleanup);
+    }
   }
 
   // Store regenerate function for update()
-  element._wabiRegenerate = regenerate;
-  element._wabiOptions = options;
+  element[WABI_REGENERATE] = regenerate;
+  element[WABI_OPTIONS] = options;
 }
 
 /**
@@ -162,8 +239,12 @@ function restoreElements(elements) {
       originalClipPaths.delete(element);
     }
 
-    // Clean up original filter tracking (no longer applied to element)
-    originalFilters.delete(element);
+    // Restore original filter
+    const originalFilter = originalFilters.get(element);
+    if (originalFilter !== undefined) {
+      element.style.filter = originalFilter;
+      originalFilters.delete(element);
+    }
 
     // Clean up resize observer
     const cleanup = resizeCleanups.get(element);
@@ -173,8 +254,8 @@ function restoreElements(elements) {
     }
 
     // Clean up stored functions
-    delete element._wabiRegenerate;
-    delete element._wabiOptions;
+    delete element[WABI_REGENERATE];
+    delete element[WABI_OPTIONS];
   });
 }
 
@@ -184,8 +265,8 @@ function restoreElements(elements) {
  */
 function updateElements(elements) {
   elements.forEach((element) => {
-    if (element._wabiRegenerate) {
-      element._wabiRegenerate();
+    if (element[WABI_REGENERATE]) {
+      element[WABI_REGENERATE]();
     }
   });
 }
@@ -197,27 +278,27 @@ function updateElements(elements) {
  */
 function setElementOptions(elements, newOptions) {
   elements.forEach((element) => {
-    if (element._wabiOptions) {
+    if (element[WABI_OPTIONS]) {
       // Build merged options manually to handle shadow correctly
       const mergedBase = {
-        ...element._wabiOptions,
+        ...element[WABI_OPTIONS],
         ...newOptions,
         corners: {
-          ...element._wabiOptions.corners,
+          ...element[WABI_OPTIONS].corners,
           ...(newOptions.corners || {}),
         },
         edges: {
-          ...element._wabiOptions.edges,
+          ...element[WABI_OPTIONS].edges,
           ...(newOptions.edges || {}),
         },
         cutCorners:
           newOptions.cutCorners !== undefined
             ? newOptions.cutCorners
-            : element._wabiOptions.cutCorners,
+            : element[WABI_OPTIONS].cutCorners,
         cornerInset:
           newOptions.cornerInset !== undefined
             ? newOptions.cornerInset
-            : element._wabiOptions.cornerInset,
+            : element[WABI_OPTIONS].cornerInset,
       };
 
       // Handle shadow merging
@@ -225,7 +306,7 @@ function setElementOptions(elements, newOptions) {
         mergedBase.shadow = false;
       } else if (newOptions.shadow && typeof newOptions.shadow === "object") {
         mergedBase.shadow = {
-          ...(element._wabiOptions.shadow || {}),
+          ...(element[WABI_OPTIONS].shadow || {}),
           ...newOptions.shadow,
         };
       }
