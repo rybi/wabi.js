@@ -373,6 +373,15 @@
         </div>
         <div class="control-group">
           <label>
+            <input type="checkbox" id="animateEnabled"> Enable Animation
+          </label>
+        </div>
+        <div class="control-group animate-control" style="display: none;">
+          <label>Animation Interval <span id="animateIntervalValue">100</span>ms</label>
+          <input type="range" id="animateInterval" min="20" max="500" step="10" value="100">
+        </div>
+        <div class="control-group">
+          <label>
             <input type="checkbox" id="shadowEnabled"> Enable Shadow
           </label>
         </div>
@@ -553,6 +562,8 @@ result.<span class="keyword">restore</span>();
       seed: document.getElementById('seed'),
       cutCorners: document.getElementById('cutCorners'),
       cutCornerInset: document.getElementById('cornerInset'),
+      animateEnabled: document.getElementById('animateEnabled'),
+      animateInterval: document.getElementById('animateInterval'),
       shadowEnabled: document.getElementById('shadowEnabled'),
       shadowX: document.getElementById('shadowX'),
       shadowY: document.getElementById('shadowY'),
@@ -568,12 +579,21 @@ result.<span class="keyword">restore</span>();
       seed: document.getElementById('seedValue'),
       cutCorners: document.getElementById('cutCornersValue'),
       cutCornerInset: document.getElementById('cutCornerInsetValue'),
+      animateInterval: document.getElementById('animateIntervalValue'),
       shadowX: document.getElementById('shadowXValue'),
       shadowY: document.getElementById('shadowYValue'),
       shadowBlur: document.getElementById('shadowBlurValue'),
     };
 
     const codePreview = document.getElementById('codePreview');
+
+    // Animation controls visibility
+    const animateControls = document.querySelectorAll('.animate-control');
+    function updateAnimateControlsVisibility() {
+      const display = controls.animateEnabled.checked ? 'flex' : 'none';
+      animateControls.forEach(el => el.style.display = display);
+    }
+    controls.animateEnabled.addEventListener('change', updateAnimateControlsVisibility);
 
     // Shadow controls visibility
     const shadowControls = document.querySelectorAll('.shadow-control');
@@ -656,6 +676,11 @@ result.<span class="keyword">restore</span>();
         code += `,\n  seed: <span class="number">${opts.seed}</span>`;
       }
 
+      if (controls.animateEnabled.checked) {
+        const interval = parseInt(controls.animateInterval.value);
+        code += `,\n  animate: { interval: <span class="number">${interval}</span> }`;
+      }
+
       code += `\n});`;
       codePreview.innerHTML = code;
     }
@@ -669,6 +694,7 @@ result.<span class="keyword">restore</span>();
       values.seed.textContent = controls.seed.value;
       values.cutCorners.textContent = controls.cutCorners.value;
       values.cutCornerInset.textContent = parseFloat(controls.cutCornerInset.value).toFixed(1);
+      values.animateInterval.textContent = controls.animateInterval.value;
       values.shadowX.textContent = controls.shadowX.value;
       values.shadowY.textContent = controls.shadowY.value;
       values.shadowBlur.textContent = controls.shadowBlur.value;
@@ -683,6 +709,13 @@ result.<span class="keyword">restore</span>();
 
       const options = getOptions();
       currentResult = wabi('.demo', options);
+
+      // Start animation if enabled
+      if (controls.animateEnabled.checked) {
+        const interval = parseInt(controls.animateInterval.value);
+        currentResult.animate({ interval });
+      }
+
       updateCodePreview();
     }
 
@@ -711,11 +744,14 @@ result.<span class="keyword">restore</span>();
       controls.seed.value = 0;
       controls.cutCorners.value = 0;
       controls.cutCornerInset.value = 1;
+      controls.animateEnabled.checked = false;
+      controls.animateInterval.value = 100;
       controls.shadowEnabled.checked = false;
       controls.shadowX.value = -10;
       controls.shadowY.value = 10;
       controls.shadowBlur.value = 8;
       controls.shadowColor.value = '#000000';
+      updateAnimateControlsVisibility();
       updateShadowControlsVisibility();
       updateCutCornerInsetState();
       updateValueDisplays();

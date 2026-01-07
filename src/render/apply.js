@@ -344,10 +344,45 @@ function setElementOptions(elements, newOptions) {
  * @returns {object} - Result object
  */
 function createResult(elements, options) {
-  return {
+  let animationIntervalId = null;
+  let animating = false;
+
+  const stop = () => {
+    if (animationIntervalId) {
+      clearInterval(animationIntervalId);
+      animationIntervalId = null;
+    }
+    animating = false;
+  };
+
+  const result = {
     elements,
-    restore: () => restoreElements(elements),
+    restore: () => {
+      stop();
+      restoreElements(elements);
+    },
     update: () => updateElements(elements),
     setOptions: (newOptions) => setElementOptions(elements, newOptions),
+    animate: (animateOptions = {}) => {
+      const interval = animateOptions.interval ?? 100;
+      if (animationIntervalId) {
+        clearInterval(animationIntervalId);
+      }
+      animating = true;
+      updateElements(elements);
+      animationIntervalId = setInterval(() => updateElements(elements), interval);
+    },
+    stop,
+    get isAnimating() {
+      return animating;
+    },
   };
+
+  // Auto-start animation if option provided
+  if (options?.animate) {
+    const animateOpts = typeof options.animate === "object" ? options.animate : {};
+    result.animate(animateOpts);
+  }
+
+  return result;
 }
