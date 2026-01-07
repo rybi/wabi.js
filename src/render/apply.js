@@ -168,10 +168,30 @@ function applyToElement(element, options) {
 
   // Generate and apply clip-path
   const regenerate = () => {
-    const width = options.units === "%" ? 100 : element.offsetWidth;
-    const height = options.units === "%" ? 100 : element.offsetHeight;
+    let width, height, polygon;
+    if (options.units === "%") {
+      // Use area-equivalent square as reference for uniform visual effect
+      // across different aspect ratios: offset means % of sqrt(w*h)
+      const w = element.offsetWidth;
+      const h = element.offsetHeight;
+      const base = Math.sqrt(w * h);
+      const genWidth = (w / base) * 100;
+      const genHeight = (h / base) * 100;
 
-    const polygon = generatePolygon(width, height, options);
+      // Generate polygon in stretched space
+      polygon = generatePolygon(genWidth, genHeight, options);
+
+      // Convert back to CSS percentage space (0-100)
+      polygon = polygon.map(p => ({
+        x: (p.x / genWidth) * 100,
+        y: (p.y / genHeight) * 100
+      }));
+    } else {
+      width = element.offsetWidth;
+      height = element.offsetHeight;
+      polygon = generatePolygon(width, height, options);
+    }
+
     const clipPath = generateClipPath(polygon, options.units);
 
     // Temporarily disable transitions to prevent animation of clip-path change
