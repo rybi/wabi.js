@@ -80,6 +80,36 @@ wabi('#card', {
 
 > **Warning:** Enabling shadows wraps the target element in a DOM container to apply the shadow without clipping it. While wabi.js automatically copies layout styles (flex, grid, position, etc.) to this wrapper, this might still affect complex layouts or CSS selectors that depend on parent-child relationships. Test thoroughly when using shadows.
 
+### Animation
+
+Continuously randomize the shape at a given interval for a dynamic effect:
+
+```javascript
+const result = wabi('.cards', { corners: { x: 5, y: 4 } });
+
+// Start animation (default: 100ms interval)
+result.animate();
+
+// Or with custom interval
+result.animate({ interval: 200 });
+
+// Stop animation
+result.stop();
+
+// Check if animating
+result.isAnimating; // true or false
+```
+
+You can also auto-start animation via options:
+
+```javascript
+// Auto-start with default 100ms interval
+wabi('.cards', { corners: { x: 5, y: 4 }, animate: true });
+
+// Auto-start with custom interval
+wabi('.cards', { corners: { x: 5, y: 4 }, animate: { interval: 200 } });
+```
+
 ## API
 
 ### `wabi(selector, options)`
@@ -107,7 +137,8 @@ wabi('#card', {
   seed: null,          // Random seed for reproducibility
   units: '%',          // 'px' or '%'
   preserveOnResize: true,
-  wrapperClass: ''     // Custom class to add to shadow wrapper
+  wrapperClass: '',    // Custom class to add to shadow wrapper
+  animate: false       // true or { interval: 100 } to auto-start animation
 }
 ```
 
@@ -128,10 +159,13 @@ Set `shadow: false` to explicitly disable shadows.
 
 ```javascript
 {
-  elements: [...],     // Array of affected DOM elements
-  restore: Function,   // Remove effect, restore original
-  update: Function,    // Regenerate with new random values
-  setOptions: Function // Update options and re-render
+  elements: [...],      // Array of affected DOM elements
+  restore: Function,    // Remove effect, restore original
+  update: Function,     // Regenerate with new random values
+  setOptions: Function, // Update options and re-render
+  animate: Function,    // Start animation: animate({ interval: 100 })
+  stop: Function,       // Stop animation
+  isAnimating: boolean  // Whether animation is running
 }
 ```
 

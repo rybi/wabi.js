@@ -19,6 +19,7 @@ const shadowWrappers = new WeakMap();
 // Symbol-based properties to avoid collision with other libraries
 const WABI_REGENERATE = Symbol("wabi.regenerate");
 const WABI_OPTIONS = Symbol("wabi.options");
+const WABI_FIRST_RENDER = Symbol("wabi.firstRender");
 
 /**
  * Wrap element with a container for shadow effect
@@ -203,7 +204,19 @@ function applyToElement(element, options) {
     element.style.transition = originalTransition;
   };
 
-  regenerate();
+  // Check if element has valid dimensions before initial render
+  const initialWidth = element.offsetWidth;
+  const initialHeight = element.offsetHeight;
+
+  // Skip initial regenerate if dimensions are invalid (zero or near-zero)
+  // This happens with images that haven't loaded yet
+  if (initialWidth > 1 && initialHeight > 1) {
+    regenerate();
+    element[WABI_FIRST_RENDER] = false;
+  } else {
+    // Mark as pending first render - ResizeObserver will handle it
+    element[WABI_FIRST_RENDER] = true;
+  }
 
   // Apply shadow via wrapper (so it doesn't get clipped by clip-path)
   const dropShadow = generateDropShadow(options.shadow);
@@ -218,14 +231,29 @@ function applyToElement(element, options) {
   if (options.preserveOnResize) {
     if (options.units === "px") {
       // Standard resize regeneration for pixel mode
-      const cleanup = setupResizeObserver(element, regenerate);
+      const shouldFastTrack = element[WABI_FIRST_RENDER] === true;
+      const cleanup = setupResizeObserver(element, regenerate, { bypassDebounceOnce: shouldFastTrack });
       resizeCleanups.set(element, cleanup);
     } else if (options.units === "%") {
       // Aspect ratio change detection for percentage mode
       let lastAspectRatio = element.offsetWidth / element.offsetHeight;
 
+      // Handle case where we're starting with 0x0 (division = NaN or Infinity)
+      if (!isFinite(lastAspectRatio)) {
+        lastAspectRatio = 0; // Will trigger regeneration on first valid resize
+      }
+
       const checkAspectRatio = () => {
         const currentAspectRatio = element.offsetWidth / element.offsetHeight;
+
+        // Always regenerate if transitioning from invalid dimensions
+        if (lastAspectRatio === 0 && isFinite(currentAspectRatio) && currentAspectRatio > 0) {
+          lastAspectRatio = currentAspectRatio;
+          element[WABI_FIRST_RENDER] = false;
+          regenerate();
+          return;
+        }
+
         // Only regenerate if aspect ratio changed significantly (>1% change)
         if (Math.abs(currentAspectRatio - lastAspectRatio) / lastAspectRatio > 0.01) {
           lastAspectRatio = currentAspectRatio;
@@ -233,7 +261,8 @@ function applyToElement(element, options) {
         }
       };
 
-      const cleanup = setupResizeObserver(element, checkAspectRatio);
+      const shouldFastTrack = element[WABI_FIRST_RENDER] === true;
+      const cleanup = setupResizeObserver(element, checkAspectRatio, { bypassDebounceOnce: shouldFastTrack });
       resizeCleanups.set(element, cleanup);
     }
   }
