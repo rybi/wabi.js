@@ -9,7 +9,7 @@ export default [
       file: "dist/wabi.min.js",
       format: "umd",
       name: "wabi",
-      exports: "named",
+      exports: "default",
     },
     plugins: [resolve(), terser()],
   },

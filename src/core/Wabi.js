@@ -132,6 +132,7 @@ class WabiElement {
 export class Wabi {
     constructor(selector, optionsOrCornerX, cornerY, edgePoints) {
         this.elements = normalizeSelector(selector);
+        this.wabiElements = [];
 
         if (this.elements.length === 0) {
             return;

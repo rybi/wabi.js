@@ -662,6 +662,15 @@ class ShadowManager {
      * @returns {Element} - The wrapper element
      */
     wrap(element, dropShadow, options) {
+        const computed = window.getComputedStyle(element);
+
+        // Shadow wrapping doesn't work with fixed/absolute positioning
+        // due to conflicting position constraints
+        if (computed.position === 'fixed' || computed.position === 'absolute') {
+            console.warn('wabi.js: Shadow not supported for position:fixed/absolute elements', element);
+            return null;
+        }
+
         let wrapper = this.wrappers.get(element);
 
         // Create wrapper if doesn't exist
@@ -956,6 +965,7 @@ class WabiElement {
 class Wabi {
     constructor(selector, optionsOrCornerX, cornerY, edgePoints) {
         this.elements = normalizeSelector(selector);
+        this.wabiElements = [];
 
         if (this.elements.length === 0) {
             return;
@@ -1100,4 +1110,4 @@ function wabi(selector, options, cornerY, edgePoints) {
   return Wabi.apply(selector, options, cornerY, edgePoints);
 }
 
-export { wabi as default, wabi };
+export { wabi as default };

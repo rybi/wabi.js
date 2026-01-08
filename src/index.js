@@ -32,6 +32,6 @@ function wabi(selector, options, cornerY, edgePoints) {
   return Wabi.apply(selector, options, cornerY, edgePoints);
 }
 
-// Export as default and named export
-export { wabi };
+// Export as default only for UMD compatibility
+// ES module users can use: import wabi from 'wabi.js'
 export default wabi;
