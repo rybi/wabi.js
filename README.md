@@ -199,7 +199,7 @@ Works in all modern browsers that support `clip-path: polygon()`:
 - `clip-path` clips visually but doesn't affect layout
 - Borders are clipped (use the built-in `shadow` option for shadows)
 - Overrides `border-radius`
-- **Shadows**: Change DOM structure by wrapping element (see warning above)
+- **Shadows**: Change DOM structure by wrapping element (see warning above), will not work on elements with absolute or fixed positioning, might break margin:auto alignment. 
 
 ## License
 
