@@ -376,9 +376,9 @@
           <label>Cut Corners <span id="cutCornersValue">0</span></label>
           <input type="range" id="cutCorners" min="0" max="4" value="0">
         </div>
-        <div class="control-group cut-corner-inset-control">
-          <label>Cut Corner Inset <span id="cutCornerInsetValue">1.0</span></label>
-          <input type="range" id="cornerInset" min="0" max="1" step="0.1" value="1">
+        <div class="control-group cut-corner-chamfer-control">
+          <label>Cut Corner Chamfer <span id="cutCornerChamferValue">1.0</span></label>
+          <input type="range" id="cornerChamfer" min="0" max="1" step="0.1" value="1">
         </div>
         <div class="control-group full-width">
           <label>
@@ -484,20 +484,7 @@
     <section class="demo-section">
       <h3>How to Use</h3>
       <div class="card" style="max-width: 800px;">
-        <h4>Quick Start (Copy & Paste)</h4>
-        <p>Complete example for WordPress or any HTML page:</p>
-        <div class="code-display">
-<span class="comment">&lt;!-- Your HTML element --&gt;</span>
-&lt;div class=<span class="string">"my-card"</span>&gt;Your content here&lt;/div&gt;
 
-<span class="comment">&lt;!-- Add these scripts before &lt;/body&gt; --&gt;</span>
-&lt;script src=<span class="string">"https://unpkg.com/wabi"</span>&gt;&lt;/script&gt;
-&lt;script&gt;
-  window.addEventListener(<span class="string">'load'</span>, <span class="keyword">function</span>() {
-    <span class="keyword">wabi</span>(<span class="string">'.my-card'</span>, { corners: { x: <span class="number">5</span>, y: <span class="number">4</span> } });
-  });
-&lt;/script&gt;
-        </div>
 
         <h4 style="margin-top: 1.5rem;">1. Add the script to your page</h4>
         <p>Download <code>wabi.min.js</code> from the dist folder and include it in your HTML:</p>
@@ -509,11 +496,16 @@
         <p>Add this script before the closing <code>&lt;/body&gt;</code> tag. The effect is applied when the page loads:</p>
         <div class="code-display">
 &lt;script&gt;
-  window.addEventListener(<span class="string">'load'</span>, <span class="keyword">function</span>() {
+  window.addEventListener(<span class="string">'load'</span>, <span class="keyword">function</span>() {<br>
     <span class="keyword">wabi</span>(<span class="string">'.my-cards'</span>, {
       corners: { x: <span class="number">5</span>, y: <span class="number">4</span> }
-    });
-  });
+    });<br>
+        <span class="comment">//You can apply different settings to different elements by calling wabi() multiple times:</span><br>
+
+        <span class="keyword">wabi</span>(<span class="string">'.buttons'</span>, {
+      corners: { x: <span class="number">2</span>, y: <span class="number">2</span> },
+      animate: <span class="keyword">true</span>
+  });<br>
 &lt;/script&gt;
         </div>
 
@@ -528,14 +520,14 @@
           <li><code>edges.distribution</code> — How edge points are spaced: <code>'random'</code>, <code>'even'</code>, or <code>'weighted-center'</code>.</li>
           <li><code>seed</code> — Fixed seed for reproducible randomness; use <code>null</code> for different results each time.</li>
           <li><code>cutCorners</code> — Number of corners (0-4) to randomly cut off, creating angled shapes.</li>
-          <li><code>cornerInset</code> — How far cut corners move inward (0 = no change, 1 = full cut).</li>
+          <li><code>cornerChamfer</code> — How far cut corners move inward (0 = no change, 1 = full cut).</li>
         </ul>
 
         <h4 style="margin-top: 1.5rem;">Using with ES modules</h4>
         <p>If you're using a bundler or ES modules:</p>
         <div class="code-display">
-<span class="keyword">import</span> wabi <span class="keyword">from</span> <span class="string">'./wabi.esm.js'</span>;
-
+<span class="keyword">import</span> wabi <span class="keyword">from</span> <span class="string">'./wabi.esm.js'</span>;<br>
+<br>
 <span class="keyword">wabi</span>(<span class="string">'#myElement'</span>, { corners: { x: <span class="number">3</span>, y: <span class="number">3</span> } });
         </div>
 
@@ -543,11 +535,11 @@
         <p>The function returns an object with a <code>restore()</code> method:</p>
         <div class="code-display">
 &lt;script&gt;
-  window.addEventListener(<span class="string">'load'</span>, <span class="keyword">function</span>() {
-    <span class="keyword">var</span> result = <span class="keyword">wabi</span>(<span class="string">'.cards'</span>, { corners: { x: <span class="number">5</span>, y: <span class="number">5</span> } });
-
-    <span class="comment">// Later, remove the effect:</span>
-    result.<span class="keyword">restore</span>();
+  window.addEventListener(<span class="string">'load'</span>, <span class="keyword">function</span>() {<br>
+    <span class="keyword">var</span> result = <span class="keyword">wabi</span>(<span class="string">'.cards'</span>, { corners: { x: <span class="number">5</span>, y: <span class="number">5</span> } });<br>
+<br>
+    <span class="comment">// Later, remove the effect:</span><br>
+    result.<span class="keyword">restore</span>();<br>
   });
 &lt;/script&gt;
         </div>
@@ -556,20 +548,20 @@
         <p>Continuously randomize the shape at a given interval:</p>
         <div class="code-display">
 &lt;script&gt;
-  window.addEventListener(<span class="string">'load'</span>, <span class="keyword">function</span>() {
-    <span class="keyword">var</span> result = <span class="keyword">wabi</span>(<span class="string">'.cards'</span>, { corners: { x: <span class="number">5</span>, y: <span class="number">5</span> } });
+  window.addEventListener(<span class="string">'load'</span>, <span class="keyword">function</span>() {<br>
+    <span class="keyword">var</span> result = <span class="keyword">wabi</span>(<span class="string">'.cards'</span>, { corners: { x: <span class="number">5</span>, y: <span class="number">5</span> } });<br>
+<br>
+    <span class="comment">// Start animation (default: 100ms interval)</span><br>
+    result.<span class="keyword">animate</span>();<br>
 
-    <span class="comment">// Start animation (default: 100ms interval)</span>
-    result.<span class="keyword">animate</span>();
+    <span class="comment">// Or with custom interval</span><br>
+    result.<span class="keyword">animate</span>({ interval: <span class="number">200</span> });<br>
 
-    <span class="comment">// Or with custom interval</span>
-    result.<span class="keyword">animate</span>({ interval: <span class="number">200</span> });
+    <span class="comment">// Stop animation</span><br>
+    result.<span class="keyword">stop</span>();<br>
 
-    <span class="comment">// Stop animation</span>
-    result.<span class="keyword">stop</span>();
-
-    <span class="comment">// Check if animating</span>
-    result.isAnimating; <span class="comment">// true or false</span>
+    <span class="comment">// Check if animating</span><br>
+    result.isAnimating; <span class="comment">// true or false</span><br>
   });
 &lt;/script&gt;
         </div>
@@ -600,7 +592,7 @@
       distribution: document.getElementById('distribution'),
       seed: document.getElementById('seed'),
       cutCorners: document.getElementById('cutCorners'),
-      cutCornerInset: document.getElementById('cornerInset'),
+      cutCornerChamfer: document.getElementById('cornerChamfer'),
       animateEnabled: document.getElementById('animateEnabled'),
       animateInterval: document.getElementById('animateInterval'),
       shadowEnabled: document.getElementById('shadowEnabled'),
@@ -617,7 +609,7 @@
       edgeWobble: document.getElementById('edgeWobbleValue'),
       seed: document.getElementById('seedValue'),
       cutCorners: document.getElementById('cutCornersValue'),
-      cutCornerInset: document.getElementById('cutCornerInsetValue'),
+      cutCornerChamfer: document.getElementById('cutCornerChamferValue'),
       animateInterval: document.getElementById('animateIntervalValue'),
       shadowX: document.getElementById('shadowXValue'),
       shadowY: document.getElementById('shadowYValue'),
@@ -642,21 +634,21 @@
     }
     controls.shadowEnabled.addEventListener('change', updateShadowControlsVisibility);
 
-    // Cut corner inset control disabled state (disable when cutCorners = 0)
-    const cutCornerInsetControl = document.querySelector('.cut-corner-inset-control');
-    function updateCutCornerInsetState() {
+    // Cut corner chamfer control disabled state (disable when cutCorners = 0)
+    const cutCornerChamferControl = document.querySelector('.cut-corner-chamfer-control');
+    function updateCutCornerChamferState() {
       const disabled = parseInt(controls.cutCorners.value) === 0;
-      cutCornerInsetControl.classList.toggle('disabled', disabled);
-      controls.cutCornerInset.disabled = disabled;
+      cutCornerChamferControl.classList.toggle('disabled', disabled);
+      controls.cutCornerChamfer.disabled = disabled;
     }
-    controls.cutCorners.addEventListener('input', updateCutCornerInsetState);
-    updateCutCornerInsetState();
+    controls.cutCorners.addEventListener('input', updateCutCornerChamferState);
+    updateCutCornerChamferState();
 
     // Get current options from controls
     function getOptions() {
       const seedVal = parseInt(controls.seed.value);
       const cutCornersVal = parseInt(controls.cutCorners.value);
-      const cutCornerInsetVal = parseFloat(controls.cutCornerInset.value);
+      const cutCornerChamferVal = parseFloat(controls.cutCornerChamfer.value);
       const opts = {
         corners: {
           x: parseFloat(controls.cornerX.value),
@@ -668,7 +660,7 @@
           distribution: controls.distribution.value,
         },
         cutCorners: cutCornersVal,
-        cornerInset: cutCornerInsetVal,
+        cornerChamfer: cutCornerChamferVal,
         seed: seedVal === 0 ? null : seedVal,
       };
 
@@ -702,8 +694,8 @@
 
       if (opts.cutCorners > 0) {
         code += `,\n  cutCorners: <span class="number">${opts.cutCorners}</span>`;
-        if (opts.cornerInset < 1) {
-          code += `,\n  cornerInset: <span class="number">${opts.cornerInset}</span>`;
+        if (opts.cornerChamfer < 1) {
+          code += `,\n  cornerChamfer: <span class="number">${opts.cornerChamfer}</span>`;
         }
       }
 
@@ -732,7 +724,7 @@
       values.edgeWobble.textContent = parseFloat(controls.edgeWobble.value).toFixed(1);
       values.seed.textContent = controls.seed.value;
       values.cutCorners.textContent = controls.cutCorners.value;
-      values.cutCornerInset.textContent = parseFloat(controls.cutCornerInset.value).toFixed(1);
+      values.cutCornerChamfer.textContent = parseFloat(controls.cutCornerChamfer.value).toFixed(1);
       values.animateInterval.textContent = controls.animateInterval.value;
       values.shadowX.textContent = controls.shadowX.value;
       values.shadowY.textContent = controls.shadowY.value;
@@ -767,8 +759,8 @@
       controls.distribution.value = ['random', 'even', 'weighted-center'][Math.floor(Math.random() * 3)];
       controls.seed.value = 0;
       controls.cutCorners.value = Math.floor(Math.random() * 3); // 0-2 corners
-      controls.cutCornerInset.value = (Math.random() * 0.8 + 0.2).toFixed(1); // 0.2-1.0
-      updateCutCornerInsetState();
+      controls.cutCornerChamfer.value = (Math.random() * 0.8 + 0.2).toFixed(1); // 0.2-1.0
+      updateCutCornerChamferState();
       updateValueDisplays();
       applyEffect();
     }
@@ -782,7 +774,7 @@
       controls.distribution.value = 'random';
       controls.seed.value = 0;
       controls.cutCorners.value = 0;
-      controls.cutCornerInset.value = 1;
+      controls.cutCornerChamfer.value = 1;
       controls.animateEnabled.checked = false;
       controls.animateInterval.value = 100;
       controls.shadowEnabled.checked = false;
@@ -792,7 +784,7 @@
       controls.shadowColor.value = '#000000';
       updateAnimateControlsVisibility();
       updateShadowControlsVisibility();
-      updateCutCornerInsetState();
+      updateCutCornerChamferState();
       updateValueDisplays();
       applyEffect();
     }

@@ -40,7 +40,7 @@ export function generatePolygon(width, height, options) {
     corners: cornerOptions = { x: 0, y: 0 },
     edges: edgeOptions = { points: 0, edgeWobble: 0 },
     cutCorners = 0,
-    cornerInset = 1,
+    cornerChamfer = 1,
     seed = null,
   } = options;
 
@@ -53,22 +53,22 @@ export function generatePolygon(width, height, options) {
   // FIRST: Insert edge points between all 4 corners
   let polygon = insertEdgePoints(corners, edgeOptions, rng);
 
-  // THEN: Handle cut corners based on inset value
+  // THEN: Handle cut corners based on chamfer value
   if (cutCorners > 0) {
     const cornersToCut = selectCornersToCut(cutCorners, rng);
     const pointsPerEdge = edgeOptions.points || 0;
     const stride = pointsPerEdge + 1; // distance between corner indices in polygon
-    const inset = cornerInset ?? 1;
+    const chamfer = cornerChamfer ?? 1;
 
-    if (inset >= 1) {
+    if (chamfer >= 1) {
       // Full cut - remove corner points entirely
       polygon = polygon.filter((_, index) => {
         const cornerIndex = Math.floor(index / stride);
         const isCornerPoint = index % stride === 0;
         return !(isCornerPoint && cornersToCut.has(cornerIndex));
       });
-    } else if (inset > 0) {
-      // Partial inset - move corners toward cut line
+    } else if (chamfer > 0) {
+      // Partial chamfer - move corners toward cut line
       polygon = polygon.map((point, index) => {
         const cornerIndex = Math.floor(index / stride);
         const isCornerPoint = index % stride === 0;
@@ -86,16 +86,16 @@ export function generatePolygon(width, height, options) {
             y: (prevPoint.y + nextPoint.y) / 2,
           };
 
-          // Move corner toward midpoint by inset amount
+          // Move corner toward midpoint by chamfer amount
           return {
-            x: point.x + (midpoint.x - point.x) * inset,
-            y: point.y + (midpoint.y - point.y) * inset,
+            x: point.x + (midpoint.x - point.x) * chamfer,
+            y: point.y + (midpoint.y - point.y) * chamfer,
           };
         }
         return point;
       });
     }
-    // inset === 0: no change to polygon
+    // chamfer === 0: no change to polygon
   }
 
   return polygon;
@@ -116,7 +116,7 @@ export const defaultOptions = {
     distribution: "random",
   },
   cutCorners: 0, // number of corners to cut (0-4)
-  cornerInset: 1, // 0-1, how far cut corners move inward (1 = full cut)
+  cornerChamfer: 1, // 0-1, how far cut corners move inward (1 = full cut)
   shadow: null, // disabled by default; set to object to enable
   seed: null,
   units: "%",
@@ -150,10 +150,10 @@ export function mergeOptions(userOptions) {
       userOptions.cutCorners !== undefined
         ? userOptions.cutCorners
         : defaultOptions.cutCorners,
-    cornerInset:
-      userOptions.cornerInset !== undefined
-        ? userOptions.cornerInset
-        : defaultOptions.cornerInset,
+    cornerChamfer:
+      userOptions.cornerChamfer !== undefined
+        ? userOptions.cornerChamfer
+        : defaultOptions.cornerChamfer,
     shadow,
     seed: userOptions.seed !== undefined ? userOptions.seed : defaultOptions.seed,
     units: userOptions.units || defaultOptions.units,

@@ -18,7 +18,7 @@
  * });
  */
 
-import { apply } from "./render/apply.js";
+import { Wabi } from "./core/Wabi.js";
 
 /**
  * Apply wabi effect to elements
@@ -26,10 +26,10 @@ import { apply } from "./render/apply.js";
  * @param {object|number} [options] - Options object or corner X offset (shorthand)
  * @param {number} [cornerY] - Corner Y offset (shorthand mode)
  * @param {number} [edgePoints] - Number of edge points (shorthand mode)
- * @returns {WabiResult} - Control object with restore, update, setOptions methods
+ * @returns {object} - Control object with restore, update, setOptions methods
  */
 function wabi(selector, options, cornerY, edgePoints) {
-  return apply(selector, options, cornerY, edgePoints);
+  return Wabi.apply(selector, options, cornerY, edgePoints);
 }
 
 // Export as default and named export

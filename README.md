@@ -2,63 +2,79 @@
 
 A lightweight JavaScript library for adding organic geometric imperfection to HTML elements.
 
+## How It Works
 
+wabi.js uses CSS `clip-path: polygon()` to redefine the visible boundaries of HTML elements. Instead of perfect rectangular corners, it creates subtle random offsets that give elements an organic, hand-crafted feel.
 
 ## Installation
+
+### For WordPress & Web Developers (Simple Setup)
+
+Download `wabi.min.js` from the [dist folder](dist/) and add it to your site:
+
+```html
+<!-- Add this before </body> -->
+<script src="/path/to/wabi.min.js"></script>
+```
+
+Or use the CDN:
+
+```html
+<script src="https://unpkg.com/wabi"></script>
+```
+
+### For NPM Users
 
 ```bash
 npm install wabi
 ```
 
-Or include directly via CDN:
-
-```html
-<script src="https://unpkg.com/wabi"></script>
-```
-
 ## Usage
 
-### Basic Usage
+### Simple Usage (WordPress, HTML Sites)
 
-Add the script to your page and call `wabi()` when the page loads:
+Add the script and call `wabi()` when the page loads:
 
 ```html
-<!-- Add this before </body> -->
+<!-- 1. Add the script before </body> -->
 <script src="https://unpkg.com/wabi"></script>
+
+<!-- 2. Call wabi() on your elements -->
 <script>
-  window.addEventListener('load', function() {
-    // Apply to elements using CSS selector
-    wabi('.my-element', { corners: { x: 5, y: 4 } });
+  window.addEventListener('load', function() {<br>
+    wabi('.my-cards', { corners: { x: 5, y: 4 } });<br>
   });
 </script>
 ```
 
-For developers using ES modules:
+That's it! The effect is applied when the page loads.
+
+### ES Modules (Bundlers, Modern JS)
 
 ```javascript
-import wabi from 'wabi';
-
-const result = wabi('#myDiv', { corners: { x: 5, y: 4 } });
+import wabi from 'wabi';<br>
+<br>
+const result = wabi('#myDiv', { corners: { x: 5, y: 4 } });<br>
 result.restore(); // Restore original shape
 ```
 
 ### Shorthand Syntax
 
 ```javascript
-// Inside your load event handler:
-wabi('#myDiv', 5, 4);  // Corner displacement only
+// Inside your load event handler:<br>
+wabi('#myDiv', 5, 4);  // Corner displacement only<br>
 wabi('#myDiv', 5, 4, 2);  // Corner displacement + edge points
 ```
 
 ### With Edge Points
 
 ```javascript
-wabi('.cards', {
-  corners: { x: 3, y: 3 },
-  edges: {
-    points: 2,      // 2 points per edge
-    deviation: 2    // max offset from edge line
-  }
+wabi('.cards', {<br>
+  corners: { x: 3, y: 3 },<br>
+  edges: {<br>
+    points: 2,      // 2 points per edge<br>
+    deviation: 2    // max offset from edge line<br>
+  }<br>
 });
 ```
 
@@ -67,24 +83,14 @@ wabi('.cards', {
 Since `clip-path` clips `box-shadow`, wabi.js provides a built-in shadow option using `filter: drop-shadow()`:
 
 ```javascript
-wabi('#card', {
-  corners: { x: 5, y: 4 },
-  shadow: {
-    x: 0,                      // horizontal offset (default: 0)
-    y: 4,                      // vertical offset (default: 4)
-    blur: 8,                   // blur radius (default: 8)
-    color: 'rgba(0,0,0,0.15)'  // shadow color
-  }
-});
-```javascript
-wabi('#card', {
-  corners: { x: 5, y: 4 },
-  shadow: {
-    x: 0,                      // horizontal offset (default: 0)
-    y: 4,                      // vertical offset (default: 4)
-    blur: 8,                   // blur radius (default: 8)
-    color: 'rgba(0,0,0,0.15)'  // shadow color
-  }
+wabi('#card', {<br>
+  corners: { x: 5, y: 4 },<br>
+  shadow: {<br>
+    x: 0,                      // horizontal offset (default: 0)<br>
+    y: 4,                      // vertical offset (default: 4)<br>
+    blur: 8,                   // blur radius (default: 8)<br>
+    color: 'rgba(0,0,0,0.15)'  // shadow color<br>
+  }<br>
 });
 ```
 
@@ -96,20 +102,20 @@ Continuously randomize the shape at a given interval for a dynamic effect:
 
 ```html
 <script>
-  window.addEventListener('load', function() {
-    var result = wabi('.cards', { corners: { x: 5, y: 4 } });
-
-    // Start animation (default: 100ms interval)
-    result.animate();
-
-    // Or with custom interval
-    result.animate({ interval: 200 });
-
-    // Stop animation
-    result.stop();
-
-    // Check if animating
-    console.log(result.isAnimating); // true or false
+  window.addEventListener('load', function() {<br>
+    var result = wabi('.cards', { corners: { x: 5, y: 4 } });<br>
+<br>
+    // Start animation (default: 100ms interval)<br>
+    result.animate();<br>
+<br>
+    // Or with custom interval<br>
+    result.animate({ interval: 200 });<br>
+<br>
+    // Stop animation<br>
+    result.stop();<br>
+<br>
+    // Check if animating<br>
+    console.log(result.isAnimating); // true or false<br>
   });
 </script>
 ```
@@ -117,10 +123,10 @@ Continuously randomize the shape at a given interval for a dynamic effect:
 You can also auto-start animation via options:
 
 ```javascript
-// Auto-start with default 100ms interval
-wabi('.cards', { corners: { x: 5, y: 4 }, animate: true });
-
-// Auto-start with custom interval
+// Auto-start with default 100ms interval<br>
+wabi('.cards', { corners: { x: 5, y: 4 }, animate: true });<br>
+<br>
+// Auto-start with custom interval<br>
 wabi('.cards', { corners: { x: 5, y: 4 }, animate: { interval: 200 } });
 ```
 
@@ -136,56 +142,46 @@ wabi('.cards', { corners: { x: 5, y: 4 }, animate: { interval: 200 } });
 ### Options
 
 ```javascript
-{
-  corners: {
-    x: 5,              // Max horizontal offset (default: 5)
-    y: 4,              // Max vertical offset (default: 4)
-    independent: true  // Each corner moves independently
-  },
-  edges: {
-    points: 0,         // Points per edge (default: 0, disabled)
-    deviation: 3,      // Max perpendicular offset
-    distribution: 'random'  // 'random' | 'even' | 'weighted-center'
-  },
-  shadow: null,        // Shadow options (see below), null = disabled
-  seed: null,          // Random seed for reproducibility
-  units: '%',          // 'px' or '%'
-  preserveOnResize: true,
-  wrapperClass: '',    // Custom class to add to shadow wrapper
-  animate: false       // true or { interval: 100 } to auto-start animation
+{<br>
+  corners: {<br>
+    x: 5,              // Max horizontal offset (default: 5)<br>
+    y: 4,              // Max vertical offset (default: 4)<br>
+    independent: true  // Each corner moves independently<br>
+  },<br>
+  edges: {<br>
+    points: 0,         // Points per edge (default: 0, disabled)<br>
+    deviation: 3,      // Max perpendicular offset<br>
+    distribution: 'random'  // 'random' | 'even' | 'weighted-center'<br>
+  },<br>
+  shadow: {            // Shadow options (null or false = disabled)<br>
+    x: 0,              // Horizontal offset in px (default: 0)<br>
+    y: 4,              // Vertical offset in px (default: 4)<br>
+    blur: 8,           // Blur radius in px (default: 8)<br>
+    color: 'rgba(0,0,0,0.15)'  // Shadow color<br>
+  },<br>
+  cutCorners: 0,       // Number of corners (0-4) to cut off (default: 0)<br>
+  cornerChamfer: 1,    // How far to cut corners, 0-1 (default: 1, full cut)<br>
+  seed: null,          // Random seed for reproducibility<br>
+  units: '%',          // 'px' or '%'<br>
+  preserveOnResize: true,<br>
+  wrapperClass: '',    // Custom class to add to shadow wrapper<br>
+  animate: false       // true or { interval: 100 } to auto-start animation<br>
 }
 ```
-
-#### Shadow Options
-
-```javascript
-shadow: {
-  x: 0,                      // Horizontal offset in px
-  y: 4,                      // Vertical offset in px
-  blur: 8,                   // Blur radius in px
-  color: 'rgba(0,0,0,0.15)'  // Shadow color
-}
-```
-
-Set `shadow: false` to explicitly disable shadows.
 
 ### Return Value
 
 ```javascript
-{
-  elements: [...],      // Array of affected DOM elements
-  restore: Function,    // Remove effect, restore original
-  update: Function,     // Regenerate with new random values
-  setOptions: Function, // Update options and re-render
-  animate: Function,    // Start animation: animate({ interval: 100 })
-  stop: Function,       // Stop animation
-  isAnimating: boolean  // Whether animation is running
+{<br>
+  elements: [...],      // Array of affected DOM elements<br>
+  restore: Function,    // Remove effect, restore original<br>
+  update: Function,     // Regenerate with new random values<br>
+  setOptions: Function, // Update options and re-render<br>
+  animate: Function,    // Start animation: animate({ interval: 100 })<br>
+  stop: Function,       // Stop animation<br>
+  isAnimating: boolean  // Whether animation is running<br>
 }
 ```
-
-## How It Works
-
-wabi.js uses CSS `clip-path: polygon()` to redefine the visible boundaries of HTML elements. Instead of perfect rectangular corners, it creates subtle random offsets that give elements an organic, hand-crafted feel.
 
 ## Browser Support
 
