@@ -2,6 +2,8 @@
 
 A lightweight JavaScript library for adding subtle geometric imperfection to HTML elements.
 
+[See the demo and configuration](https://rybi.github.io/wabi.js/)
+
 ## How It Works
 
 wabi.js uses CSS `clip-path: polygon()` to redefine the visible boundaries of HTML elements. Instead of perfect rectangular corners, it creates subtle random offsets that give elements an organic, hand-crafted feel.
