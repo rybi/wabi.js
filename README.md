@@ -2,7 +2,7 @@
 
 A lightweight JavaScript library for adding organic geometric imperfection to HTML elements.
 
-Inspired by [wabi-sabi](https://en.wikipedia.org/wiki/Wabi-sabi) (侘寂) - the Japanese aesthetic that finds beauty in imperfection.
+
 
 ## Installation
 
@@ -20,24 +20,34 @@ Or include directly via CDN:
 
 ### Basic Usage
 
+Add the script to your page and call `wabi()` when the page loads:
+
+```html
+<!-- Add this before </body> -->
+<script src="https://unpkg.com/wabi"></script>
+<script>
+  window.addEventListener('load', function() {
+    // Apply to elements using CSS selector
+    wabi('.my-element', { corners: { x: 5, y: 4 } });
+  });
+</script>
+```
+
+For developers using ES modules:
+
 ```javascript
 import wabi from 'wabi';
 
-// Apply to elements using CSS selector
 const result = wabi('#myDiv', { corners: { x: 5, y: 4 } });
-
-// Restore original shape
-result.restore();
+result.restore(); // Restore original shape
 ```
 
 ### Shorthand Syntax
 
 ```javascript
-// Corner displacement only
-wabi('#myDiv', 5, 4);
-
-// Corner displacement + edge points
-wabi('#myDiv', 5, 4, 2);
+// Inside your load event handler:
+wabi('#myDiv', 5, 4);  // Corner displacement only
+wabi('#myDiv', 5, 4, 2);  // Corner displacement + edge points
 ```
 
 ### With Edge Points
@@ -84,20 +94,24 @@ wabi('#card', {
 
 Continuously randomize the shape at a given interval for a dynamic effect:
 
-```javascript
-const result = wabi('.cards', { corners: { x: 5, y: 4 } });
+```html
+<script>
+  window.addEventListener('load', function() {
+    var result = wabi('.cards', { corners: { x: 5, y: 4 } });
 
-// Start animation (default: 100ms interval)
-result.animate();
+    // Start animation (default: 100ms interval)
+    result.animate();
 
-// Or with custom interval
-result.animate({ interval: 200 });
+    // Or with custom interval
+    result.animate({ interval: 200 });
 
-// Stop animation
-result.stop();
+    // Stop animation
+    result.stop();
 
-// Check if animating
-result.isAnimating; // true or false
+    // Check if animating
+    console.log(result.isAnimating); // true or false
+  });
+</script>
 ```
 
 You can also auto-start animation via options:

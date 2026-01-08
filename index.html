@@ -453,9 +453,9 @@
     <section class="demo-section">
       <h3>Images</h3>
       <div class="images-grid">
-        <img src="../circles.png" alt="Circles" class="demo-image demo">
-        <img src="../eco.jpg" alt="Eco" class="demo-image demo">
-        <img src="../mampf.jpg" alt="Mampf" class="demo-image demo">
+        <img src="circles.jpg" alt="Circles" class="demo-image demo">
+        <img src="plant.jpg" alt="Eco" class="demo-image demo">
+        <img src="mampf.jpg" alt="Mampf" class="demo-image demo">
       </div>
     </section>
 
@@ -474,7 +474,7 @@
     <!-- Demo: Layout Tests (Flex/Grid/Inline) -->
     <section class="demo-section">
       <h3>Inline Text</h3>
-    
+
       <p style="background: #fff; padding: 1rem;">
         This is a paragraph with <span class="demo" style="background: #ffeb3b; padding: 2px 5px;">inline highlighted text</span> that should stay inline even with <span class="demo" style="background: #80deea; padding: 2px 5px;">shadow enabled</span>.
       </p>
@@ -484,18 +484,37 @@
     <section class="demo-section">
       <h3>How to Use</h3>
       <div class="card" style="max-width: 800px;">
-        <h4>1. Add the script to your page</h4>
+        <h4>Quick Start (Copy & Paste)</h4>
+        <p>Complete example for WordPress or any HTML page:</p>
+        <div class="code-display">
+<span class="comment">&lt;!-- Your HTML element --&gt;</span>
+&lt;div class=<span class="string">"my-card"</span>&gt;Your content here&lt;/div&gt;
+
+<span class="comment">&lt;!-- Add these scripts before &lt;/body&gt; --&gt;</span>
+&lt;script src=<span class="string">"https://unpkg.com/wabi"</span>&gt;&lt;/script&gt;
+&lt;script&gt;
+  window.addEventListener(<span class="string">'load'</span>, <span class="keyword">function</span>() {
+    <span class="keyword">wabi</span>(<span class="string">'.my-card'</span>, { corners: { x: <span class="number">5</span>, y: <span class="number">4</span> } });
+  });
+&lt;/script&gt;
+        </div>
+
+        <h4 style="margin-top: 1.5rem;">1. Add the script to your page</h4>
         <p>Download <code>wabi.min.js</code> from the dist folder and include it in your HTML:</p>
         <div class="code-display">
 &lt;script src="wabi.min.js"&gt;&lt;/script&gt;
         </div>
 
         <h4 style="margin-top: 1.5rem;">2. Call wabi() on your elements</h4>
-        <p>Use a CSS selector to target elements. The effect is applied immediately:</p>
+        <p>Add this script before the closing <code>&lt;/body&gt;</code> tag. The effect is applied when the page loads:</p>
         <div class="code-display">
-<span class="keyword">wabi</span>(<span class="string">'.my-cards'</span>, {
-  corners: { x: <span class="number">5</span>, y: <span class="number">4</span> }
-});
+&lt;script&gt;
+  window.addEventListener(<span class="string">'load'</span>, <span class="keyword">function</span>() {
+    <span class="keyword">wabi</span>(<span class="string">'.my-cards'</span>, {
+      corners: { x: <span class="number">5</span>, y: <span class="number">4</span> }
+    });
+  });
+&lt;/script&gt;
         </div>
 
         <h4 style="margin-top: 1.5rem;">3. That's it!</h4>
@@ -523,28 +542,36 @@
         <h4 style="margin-top: 1.5rem;">Restoring elements</h4>
         <p>The function returns an object with a <code>restore()</code> method:</p>
         <div class="code-display">
-<span class="keyword">const</span> result = <span class="keyword">wabi</span>(<span class="string">'.cards'</span>, { corners: { x: <span class="number">5</span>, y: <span class="number">5</span> } });
+&lt;script&gt;
+  window.addEventListener(<span class="string">'load'</span>, <span class="keyword">function</span>() {
+    <span class="keyword">var</span> result = <span class="keyword">wabi</span>(<span class="string">'.cards'</span>, { corners: { x: <span class="number">5</span>, y: <span class="number">5</span> } });
 
-<span class="comment">// Later, remove the effect:</span>
-result.<span class="keyword">restore</span>();
+    <span class="comment">// Later, remove the effect:</span>
+    result.<span class="keyword">restore</span>();
+  });
+&lt;/script&gt;
         </div>
 
         <h4 style="margin-top: 1.5rem;">Animating elements</h4>
         <p>Continuously randomize the shape at a given interval:</p>
         <div class="code-display">
-<span class="keyword">const</span> result = <span class="keyword">wabi</span>(<span class="string">'.cards'</span>, { corners: { x: <span class="number">5</span>, y: <span class="number">5</span> } });
+&lt;script&gt;
+  window.addEventListener(<span class="string">'load'</span>, <span class="keyword">function</span>() {
+    <span class="keyword">var</span> result = <span class="keyword">wabi</span>(<span class="string">'.cards'</span>, { corners: { x: <span class="number">5</span>, y: <span class="number">5</span> } });
 
-<span class="comment">// Start animation (default: 100ms interval)</span>
-result.<span class="keyword">animate</span>();
+    <span class="comment">// Start animation (default: 100ms interval)</span>
+    result.<span class="keyword">animate</span>();
 
-<span class="comment">// Or with custom interval</span>
-result.<span class="keyword">animate</span>({ interval: <span class="number">200</span> });
+    <span class="comment">// Or with custom interval</span>
+    result.<span class="keyword">animate</span>({ interval: <span class="number">200</span> });
 
-<span class="comment">// Stop animation</span>
-result.<span class="keyword">stop</span>();
+    <span class="comment">// Stop animation</span>
+    result.<span class="keyword">stop</span>();
 
-<span class="comment">// Check if animating</span>
-result.isAnimating; <span class="comment">// true or false</span>
+    <span class="comment">// Check if animating</span>
+    result.isAnimating; <span class="comment">// true or false</span>
+  });
+&lt;/script&gt;
         </div>
         <p style="margin-top: 0.5rem; color: #666; font-size: 0.9rem;">You can also auto-start animation via options: <code>wabi('.cards', { animate: true })</code> or <code>{ animate: { interval: 200 } }</code></p>
       </div>
@@ -559,7 +586,7 @@ result.isAnimating; <span class="comment">// true or false</span>
   </div>
 
   <script type="module">
-    import wabi from '../dist/wabi.esm.js';
+    import wabi from './dist/wabi.esm.js';
 
     // State
     let currentResult = null;
