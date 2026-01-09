@@ -22,14 +22,16 @@ Download `wabi.min.js` from the [dist folder](dist/) and add it to your site:
 Or use the CDN:
 
 ```html
-<script src="https://unpkg.com/wabi"></script>
+<script src="https://unpkg.com/wabijs"></script>
 ```
 
 ### For NPM Users
 
 ```bash
-npm install wabi
+npm install wabijs
 ```
+
+**NPM Package:** https://www.npmjs.com/package/wabijs
 
 ## Usage
 
@@ -39,7 +41,7 @@ Add the script and call `wabi()` when the page loads:
 
 ```html
 <!-- 1. Add the script before </body> -->
-<script src="https://unpkg.com/wabi"></script>
+<script src="https://unpkg.com/wabijs"></script>
 
 <!-- 2. Call wabi() on your elements -->
 <script>
@@ -57,7 +59,7 @@ That's it! The effect is applied when the page loads.
 ### ES Modules (Bundlers, Modern JS)
 
 ```javascript
-import wabi from 'wabi'; 
+import wabi from 'wabijs'; 
  
 const result = wabi('#myDiv', { corners: { x: 5, y: 4 } }); 
 result.restore(); // Restore original shape
